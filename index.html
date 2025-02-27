@@ -3,153 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amazon アフィリエイトリンク変換</title>
-    <link rel="manifest" href="/manifest.json">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            text-align: center;
-            background-color: #f4f4f4;
-        }
-        input, button {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            box-sizing: border-box;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        #result {
-            word-break: break-all;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            padding: 10px;
-            margin-top: 20px;
-            border-radius: 4px;
-        }
-        .copy-btn {
-            margin-top: 10px;
-            display: none;
-        }
-        #error {
-            color: red;
-            margin-top: 10px;
-        }
-    </style>
+    <title>Amazonアフィリエイトリンク変換ツール</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Amazon アフィリエイトリンク変換</h1>
-    <input type="text" id="amazonLink" placeholder="AmazonのURLを入力">
-    <button onclick="convertLink()">変換</button>
-    <div id="error"></div>
-    <div id="result"></div>
-    <button id="copyBtn" class="copy-btn" onclick="copyToClipboard()">リンクをコピー</button>
-
-    <script>
-        async function convertShortLink(shortUrl) {
-            try {
-                const response = await fetch(shortUrl, { 
-                    method: 'HEAD',
-                    redirect: 'follow'
-                });
-                return response.url;
-            } catch (error) {
-                console.error('短縮URLの解決に失敗:', error);
-                return shortUrl;
-            }
-        }
-
-        async function convertLink() {
-            const input = document.getElementById('amazonLink');
-            const resultDiv = document.getElementById('result');
-            const copyBtn = document.getElementById('copyBtn');
-            const errorDiv = document.getElementById('error');
-            
-            // リセット
-            resultDiv.textContent = '';
-            copyBtn.style.display = 'none';
-            errorDiv.textContent = '';
-
-            // 入力されたURL
-            let inputUrl = input.value.trim();
-
-            // URLパターンの拡張
-            const amazonLinkPatterns = [
-                // 通常のAmazon商品ページ
-                /(?:https?:\/\/)?(?:www\.)?amazon\.(co\.jp|com|ca|de|fr|co\.uk)\/(?:.*\/)?(?:dp|gp\/product)\/([A-Z0-9]+)/,
-                
-                // 短縮リンク
-                /(?:https?:\/\/)?(?:amzn\.to|amzn\.asia)\/([A-Za-z0-9]+)/
-            ];
-
-            let match = null;
-            for (const pattern of amazonLinkPatterns) {
-                match = inputUrl.match(pattern);
-                if (match) break;
-            }
-            
-            if (match) {
-                let productId = match[2] || match[1];
-                
-                // 短縮URLの場合は解決を試みる
-                if (inputUrl.includes('amzn.to') || inputUrl.includes('amzn.asia')) {
-                    try {
-                        const resolvedUrl = await convertShortLink(inputUrl);
-                        const resolvedMatch = resolvedUrl.match(/\/dp\/([A-Z0-9]+)/);
-                        if (resolvedMatch) {
-                            productId = resolvedMatch[1];
-                        }
-                    } catch (error) {
-                        console.error('URLの解決に失敗:', error);
-                    }
-                }
-
-                const affiliateLink = `https://www.amazon.co.jp/dp/${productId}/?tag=nuntanunta506-22#PR`;
-                
-                resultDiv.textContent = affiliateLink;
-                copyBtn.style.display = 'block';
-            } else {
-                errorDiv.textContent = '有効なAmazonリンクを入力してください。';
-                copyBtn.style.display = 'none';
-            }
-        }
-
-        function copyToClipboard() {
-            const resultDiv = document.getElementById('result');
-            const tempInput = document.createElement('textarea');
-            tempInput.value = resultDiv.textContent;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-            alert('リンクをコピーしました！');
-        }
-
-        // サービスワーカーの登録
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('Service Worker registered successfully:', registration.scope);
-                    })
-                    .catch(error => {
-                        console.log('Service Worker registration failed:', error);
-                    });
-            });
-        }
-    </script>
+    <div class="container">
+        <h1>Amazonアフィリエイトリンク変換ツール</h1>
+        
+        <div class="input-area">
+            <label for="amazon-url">Amazonの商品リンクを入力:</label>
+            <textarea id="amazon-url" placeholder="https://www.amazon.co.jp/dp/B0XXXXXX"></textarea>
+            <button id="convert-btn">変換する</button>
+        </div>
+        
+        <div class="result-area">
+            <label for="affiliate-url">アフィリエイトリンク:</label>
+            <textarea id="affiliate-url" readonly></textarea>
+            <button id="copy-btn">コピー</button>
+            <div id="copy-message" class="hidden">コピーしました！</div>
+        </div>
+        
+        <div class="info">
+            <p>トラッキングID: nuntanunta506-22</p>
+            <p>※ リンクの最後に#PRが自動的に追加されます</p>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
 </body>
 </html>
