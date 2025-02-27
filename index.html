@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amazon アフィリエイトリンク変換ツール</title>
+    <title>Amazon アフィリエイトリンク変換</title>
     <link rel="manifest" href="/manifest.json">
     <style>
         body {
@@ -59,7 +59,20 @@
     <button id="copyBtn" class="copy-btn" onclick="copyToClipboard()">リンクをコピー</button>
 
     <script>
-        function convertLink() {
+        async function convertShortLink(shortUrl) {
+            try {
+                const response = await fetch(shortUrl, { 
+                    method: 'HEAD',
+                    redirect: 'follow'
+                });
+                return response.url;
+            } catch (error) {
+                console.error('短縮URLの解決に失敗:', error);
+                return shortUrl;
+            }
+        }
+
+        async function convertLink() {
             const input = document.getElementById('amazonLink');
             const resultDiv = document.getElementById('result');
             const copyBtn = document.getElementById('copyBtn');
@@ -69,6 +82,9 @@
             resultDiv.textContent = '';
             copyBtn.style.display = 'none';
             errorDiv.textContent = '';
+
+            // 入力されたURL
+            let inputUrl = input.value.trim();
 
             // URLパターンの拡張
             const amazonLinkPatterns = [
@@ -81,12 +97,26 @@
 
             let match = null;
             for (const pattern of amazonLinkPatterns) {
-                match = input.value.match(pattern);
+                match = inputUrl.match(pattern);
                 if (match) break;
             }
             
             if (match) {
                 let productId = match[2] || match[1];
+                
+                // 短縮URLの場合は解決を試みる
+                if (inputUrl.includes('amzn.to') || inputUrl.includes('amzn.asia')) {
+                    try {
+                        const resolvedUrl = await convertShortLink(inputUrl);
+                        const resolvedMatch = resolvedUrl.match(/\/dp\/([A-Z0-9]+)/);
+                        if (resolvedMatch) {
+                            productId = resolvedMatch[1];
+                        }
+                    } catch (error) {
+                        console.error('URLの解決に失敗:', error);
+                    }
+                }
+
                 const affiliateLink = `https://www.amazon.co.jp/dp/${productId}/?tag=nuntanunta506-22#PR`;
                 
                 resultDiv.textContent = affiliateLink;
