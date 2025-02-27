@@ -12,55 +12,87 @@
             margin: 0 auto;
             padding: 20px;
             text-align: center;
+            background-color: #f4f4f4;
         }
         input, button {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
             box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
-        #result {
-            word-break: break-all;
-            background-color: #f0f0f0;
-            padding: 10px;
-            margin-top: 20px;
-        }
-        .copy-btn {
+        button {
             background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 10px;
-            margin-top: 10px;
             cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            word-break: break-all;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+        .copy-btn {
+            margin-top: 10px;
+            display: none;
+        }
+        #error {
+            color: red;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
     <h1>Amazon アフィリエイトリンク変換</h1>
-    <input type="text" id="amazonLink" placeholder="Amazonの商品リンクを入力">
+    <input type="text" id="amazonLink" placeholder="AmazonのURLを入力">
     <button onclick="convertLink()">変換</button>
+    <div id="error"></div>
     <div id="result"></div>
-    <button id="copyBtn" class="copy-btn" style="display:none;" onclick="copyToClipboard()">リンクをコピー</button>
+    <button id="copyBtn" class="copy-btn" onclick="copyToClipboard()">リンクをコピー</button>
 
     <script>
         function convertLink() {
             const input = document.getElementById('amazonLink');
             const resultDiv = document.getElementById('result');
             const copyBtn = document.getElementById('copyBtn');
+            const errorDiv = document.getElementById('error');
             
-            // Amazon商品リンクの正規表現パターン
-            const amazonLinkPattern = /^(https:\/\/)?(www\.)?amazon\.(co\.jp|com|ca|de|fr|co\.uk)\/.*\/dp\/([A-Z0-9]+)/;
-            
-            const match = input.value.match(amazonLinkPattern);
+            // リセット
+            resultDiv.textContent = '';
+            copyBtn.style.display = 'none';
+            errorDiv.textContent = '';
+
+            // URLパターンの拡張
+            const amazonLinkPatterns = [
+                // 通常のAmazon商品ページ
+                /(?:https?:\/\/)?(?:www\.)?amazon\.(co\.jp|com|ca|de|fr|co\.uk)\/(?:.*\/)?(?:dp|gp\/product)\/([A-Z0-9]+)/,
+                
+                // 短縮リンク
+                /(?:https?:\/\/)?(?:amzn\.to|amzn\.asia)\/([A-Za-z0-9]+)/
+            ];
+
+            let match = null;
+            for (const pattern of amazonLinkPatterns) {
+                match = input.value.match(pattern);
+                if (match) break;
+            }
             
             if (match) {
-                const productId = match[4];
+                let productId = match[2] || match[1];
                 const affiliateLink = `https://www.amazon.co.jp/dp/${productId}/?tag=nuntanunta506-22#PR`;
                 
                 resultDiv.textContent = affiliateLink;
                 copyBtn.style.display = 'block';
             } else {
-                resultDiv.textContent = '有効なAmazonリンクを入力してください。';
+                errorDiv.textContent = '有効なAmazonリンクを入力してください。';
                 copyBtn.style.display = 'none';
             }
         }
