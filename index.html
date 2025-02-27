@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon アフィリエイトリンク変換ツール</title>
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            box-sizing: border-box;
+        }
+        #result {
+            word-break: break-all;
+            background-color: #f0f0f0;
+            padding: 10px;
+            margin-top: 20px;
+        }
+        .copy-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Amazon アフィリエイトリンク変換</h1>
+    <input type="text" id="amazonLink" placeholder="Amazonの商品リンクを入力">
+    <button onclick="convertLink()">変換</button>
+    <div id="result"></div>
+    <button id="copyBtn" class="copy-btn" style="display:none;" onclick="copyToClipboard()">リンクをコピー</button>
+
+    <script>
+        function convertLink() {
+            const input = document.getElementById('amazonLink');
+            const resultDiv = document.getElementById('result');
+            const copyBtn = document.getElementById('copyBtn');
+            
+            // Amazon商品リンクの正規表現パターン
+            const amazonLinkPattern = /^(https:\/\/)?(www\.)?amazon\.(co\.jp|com|ca|de|fr|co\.uk)\/.*\/dp\/([A-Z0-9]+)/;
+            
+            const match = input.value.match(amazonLinkPattern);
+            
+            if (match) {
+                const productId = match[4];
+                const affiliateLink = `https://www.amazon.co.jp/dp/${productId}/?tag=nuntanunta506-22#PR`;
+                
+                resultDiv.textContent = affiliateLink;
+                copyBtn.style.display = 'block';
+            } else {
+                resultDiv.textContent = '有効なAmazonリンクを入力してください。';
+                copyBtn.style.display = 'none';
+            }
+        }
+
+        function copyToClipboard() {
+            const resultDiv = document.getElementById('result');
+            const tempInput = document.createElement('textarea');
+            tempInput.value = resultDiv.textContent;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            alert('リンクをコピーしました！');
+        }
+
+        // サービスワーカーの登録
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered successfully:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
